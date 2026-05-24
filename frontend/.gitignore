@@ -11,6 +11,9 @@ node_modules
 dist-ssr
 *.local
 
+# Local product images (served from src/assets, not committed)
+public/images/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
