@@ -6,8 +6,9 @@ import Add from './pages/Add'
 import List from './pages/List'
 import Orders from './pages/Orders'
 import Login from './components/Login'
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios'
 
 export const backendUrl = import.meta.env.VITE_BACKEND_URL
 export const currency = '$'
@@ -19,6 +20,21 @@ const App = () => {
   useEffect(()=>{
     localStorage.setItem('token',token)
   },[token])
+
+  // Global interceptor — any API response with "Not Authorized" clears the
+  // token which causes App to swap the admin layout for <Login /> automatically
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use((response) => {
+      if (response.data?.success === false &&
+          response.data?.message === 'Not Authorized. Login Again') {
+        toast.error('Session expired. Please login again.')
+        localStorage.removeItem('token')
+        setToken('')
+      }
+      return response
+    })
+    return () => axios.interceptors.response.eject(interceptor)
+  }, [])
 
   return (
     <div className='bg-gray-50 min-h-screen'>
