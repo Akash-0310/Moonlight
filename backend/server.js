@@ -14,9 +14,25 @@ const port = process.env.PORT || 4000
 connectDB()
 connectCloudinary()
 
+// CORS — only allow listed origins
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : ['http://localhost:5173', 'http://localhost:5174']
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // allow server-to-server / curl requests (no origin header)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true)
+        } else {
+            callback(new Error(`CORS: origin '${origin}' not allowed`))
+        }
+    },
+    credentials: true
+}))
+
 // middlewares
 app.use(express.json())
-app.use(cors())
 
 // api endpoints
 app.use('/api/user',userRouter)
