@@ -145,6 +145,22 @@ const ShopContextProvider = (props) => {
     }
   }, [token]);
 
+  // Global interceptor — any API response with "Not Authorized" clears the
+  // token and sends the user to /login regardless of which page they're on
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use((response) => {
+      if (response.data?.success === false &&
+          response.data?.message === 'Not Authorized. Login Again') {
+        toast.error('Session expired. Please login again.')
+        localStorage.removeItem('token')
+        setToken('')
+        navigate('/login')
+      }
+      return response
+    })
+    return () => axios.interceptors.response.eject(interceptor)
+  }, [navigate])
+
   const value = {
     products,
     currency,
