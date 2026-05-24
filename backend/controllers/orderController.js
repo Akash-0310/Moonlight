@@ -1,11 +1,23 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
+import productModel from "../models/productModel.js";
 import Stripe from 'stripe'
 import razorpay from 'razorpay'
 
 // global variables
 const currency = 'inr'
 const deliveryCharge = 10
+
+// Helper: calculate real total from DB prices — never trust client-sent amount
+const computeVerifiedTotal = async (items) => {
+    let total = 0
+    for (const item of items) {
+        const product = await productModel.findById(item._id)
+        if (!product) throw new Error(`Product not found: ${item._id}`)
+        total += product.price * item.quantity
+    }
+    return total + deliveryCharge
+}
 
 // gateway initialize
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -17,10 +29,13 @@ const razorpayInstance = new razorpay({
 
 // Placing orders using COD Method
 const placeOrder = async (req,res) => {
-    
+
     try {
-        
-        const { userId, items, amount, address} = req.body;
+
+        const { userId, items, address} = req.body;
+
+        // compute total server-side — ignore any amount sent by client
+        const amount = await computeVerifiedTotal(items)
 
         const orderData = {
             userId,
@@ -50,9 +65,12 @@ const placeOrder = async (req,res) => {
 // Placing orders using Stripe Method
 const placeOrderStripe = async (req,res) => {
     try {
-        
-        const { userId, items, amount, address} = req.body
+
+        const { userId, items, address} = req.body
         const { origin } = req.headers;
+
+        // compute total server-side — ignore client amount
+        const amount = await computeVerifiedTotal(items)
 
         const orderData = {
             userId,
@@ -67,15 +85,17 @@ const placeOrderStripe = async (req,res) => {
         const newOrder = new orderModel(orderData)
         await newOrder.save()
 
-        const line_items = items.map((item) => ({
-            price_data: {
-                currency:currency,
-                product_data: {
-                    name:item.name
+        // fetch real prices from DB for Stripe line items
+        const line_items = await Promise.all(items.map(async (item) => {
+            const product = await productModel.findById(item._id)
+            return {
+                price_data: {
+                    currency,
+                    product_data: { name: product.name },
+                    unit_amount: product.price * 100   // DB price, not client price
                 },
-                unit_amount: item.price * 100
-            },
-            quantity: item.quantity
+                quantity: item.quantity
+            }
         }))
 
         line_items.push({
@@ -129,8 +149,11 @@ const verifyStripe = async (req,res) => {
 // Placing orders using Razorpay Method
 const placeOrderRazorpay = async (req,res) => {
     try {
-        
-        const { userId, items, amount, address} = req.body
+
+        const { userId, items, address} = req.body
+
+        // compute total server-side — ignore client amount
+        const amount = await computeVerifiedTotal(items)
 
         const orderData = {
             userId,
