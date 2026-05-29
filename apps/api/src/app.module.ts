@@ -10,6 +10,13 @@ import { CartModule } from './modules/cart/cart.module';
 import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { QueueModule } from './modules/queue/queue.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { RealtimeModule } from './modules/realtime/realtime.module';
+import { AiCacheModule } from './modules/ai-cache/ai-cache.module';
+import { CacheModule } from './cache/cache.module';
+import { RateLimitModule } from './rate-limit/rate-limit.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -36,11 +43,18 @@ import { RolesGuard } from './common/guards/roles.guard';
 
     PrismaModule,
     RedisModule,
+    CacheModule,
+    RateLimitModule,
     AuthModule,
     CartModule,
     ProductsModule,
     OrdersModule,
     WishlistModule,
+    InventoryModule,
+    QueueModule,
+    AnalyticsModule,
+    RealtimeModule,
+    AiCacheModule,
   ],
   providers: [
     // Global exception filter — all unhandled errors go here

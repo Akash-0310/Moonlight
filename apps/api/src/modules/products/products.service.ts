@@ -6,9 +6,12 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CacheService } from '../../cache/cache.service';
+import { AnalyticsService } from '../analytics/analytics.service';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { createHash } from 'crypto';
 
 // Full include — used for product detail page (includes description, all images, all variants)
 const PRODUCT_INCLUDE = {
@@ -35,11 +38,19 @@ const PRODUCT_LIST_INCLUDE = {
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
+    private readonly analytics: AnalyticsService,
+  ) {}
 
   // ─── Public Queries ─────────────────────────────────────────────────────────
 
   async findAll(query: ProductQueryDto) {
+    const cacheKey = createHash('md5').update(JSON.stringify(query)).digest('hex');
+    const cached = await this.cache.getProductList(cacheKey);
+    if (cached) return cached;
+
     const {
       category,
       subCategory,
@@ -77,15 +88,18 @@ export class ProductsService {
       this.prisma.product.count({ where }),
     ]);
 
-    return {
-      items,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
-    };
+    const result = { items, total, page, totalPages: Math.ceil(total / limit) };
+    await this.cache.setProductList(cacheKey, result);
+    return result;
   }
 
-  async findBySlug(slug: string) {
+  async findBySlug(slug: string, userId?: string) {
+    const cached = await this.cache.getProduct(slug);
+    if (cached) {
+      if (userId) void this.analytics.trackProductView((cached as { id: string }).id, userId);
+      return cached;
+    }
+
     const product = await this.prisma.product.findUnique({
       where: { slug, isActive: true },
       include: PRODUCT_INCLUDE,
@@ -95,25 +109,39 @@ export class ProductsService {
       throw new NotFoundException(`Product with slug "${slug}" not found`);
     }
 
+    await this.cache.setProduct(slug, product);
+    if (userId) void this.analytics.trackProductView(product.id, userId);
     return product;
   }
 
   async findBestsellers() {
-    return this.prisma.product.findMany({
+    const cached = await this.cache.getFeaturedProducts();
+    if (cached) return cached;
+
+    const products = await this.prisma.product.findMany({
       where: { isActive: true, isBestseller: true },
       include: PRODUCT_LIST_INCLUDE,
       orderBy: { avgRating: 'desc' },
       take: 8,
     });
+
+    await this.cache.setFeaturedProducts(products);
+    return products;
   }
 
   async findLatest() {
-    return this.prisma.product.findMany({
+    const cached = await this.cache.getHomepageData<unknown[]>();
+    if (cached) return cached;
+
+    const products = await this.prisma.product.findMany({
       where: { isActive: true },
       include: PRODUCT_LIST_INCLUDE,
       orderBy: { createdAt: 'desc' },
       take: 8,
     });
+
+    await this.cache.setHomepageData(products);
+    return products;
   }
 
   // ─── Admin Mutations ────────────────────────────────────────────────────────
@@ -156,6 +184,9 @@ export class ProductsService {
         throw new ConflictException('A product with this slug already exists');
       }
       throw new InternalServerErrorException('Failed to create product');
+    } finally {
+      // Invalidate all product lists after creation
+      void this.cache.invalidateProductLists();
     }
   }
 
@@ -199,20 +230,29 @@ export class ProductsService {
       };
     }
 
-    return this.prisma.product.update({
+    const updated = await this.prisma.product.update({
       where: { id },
       data,
       include: PRODUCT_INCLUDE,
     });
+
+    // Invalidate specific product + all lists
+    await this.cache.invalidateProduct(updated.slug);
+    void this.cache.invalidateProductLists();
+    return updated;
   }
 
   async remove(id: string) {
-    await this.findByIdOrThrow(id);
+    const product = await this.findByIdOrThrow(id);
 
     await this.prisma.product.update({
       where: { id },
       data: { isActive: false },
     });
+
+    // Invalidate cache
+    await this.cache.invalidateProduct((product as { slug: string }).slug);
+    void this.cache.invalidateProductLists();
 
     return { message: 'Product deactivated successfully' };
   }
