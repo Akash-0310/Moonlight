@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 13% 97%;
+    --foreground: 0 0% 7%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 7%;
+    --primary: 0 0% 7%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 10% 94%;
+    --secondary-foreground: 0 0% 20%;
+    --muted: 40 8% 92%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 38 62% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 40 10% 88%;
+    --input: 40 10% 88%;
+    --ring: 38 62% 50%;
+    --radius: 0.25rem;
+  }
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground antialiased; }
+  html { scroll-behavior: smooth; }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .container-narrow { @apply max-w-5xl mx-auto px-4 sm:px-6; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(200%); }
+}

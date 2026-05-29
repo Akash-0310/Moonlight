@@ -1,0 +1,18 @@
+{
+  "name": "moonlight",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev:legacy": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:admin\"",
+    "dev:backend": "cd backend && nodemon server.js",
+    "dev:frontend": "cd frontend && vite",
+    "dev:admin": "cd admin && vite",
+    "dev": "pnpm --filter @moonlight/api dev & pnpm --filter @moonlight/web dev",
+    "build": "pnpm --filter @moonlight/api build && pnpm --filter @moonlight/web build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
