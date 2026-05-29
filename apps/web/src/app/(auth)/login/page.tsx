@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { loginSchema, type LoginInput } from '@/lib/validations/auth';
 
@@ -37,6 +37,7 @@ function LoginForm() {
   const redirect = searchParams.get('redirect') ?? '/';
   const login = useAuthStore((s) => s.login);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -135,16 +136,27 @@ function LoginForm() {
                   Forgot password?
                 </Link>
               </div>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                {...register('password')}
-                disabled={isSubmitting}
-                placeholder="••••••••"
-                onChange={() => setAuthError(null)}
-                className="w-full border-b border-border bg-transparent py-2.5 text-sm outline-none focus:border-black transition-colors placeholder:text-muted-foreground/50 disabled:opacity-50"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  {...register('password')}
+                  disabled={isSubmitting}
+                  placeholder="••••••••"
+                  onChange={() => setAuthError(null)}
+                  className="w-full border-b border-border bg-transparent py-2.5 pr-8 text-sm outline-none focus:border-black transition-colors placeholder:text-muted-foreground/50 disabled:opacity-50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={15} strokeWidth={1.5} /> : <Eye size={15} strokeWidth={1.5} />}
+                </button>
+              </div>
               {errors.password && (
                 <p className="mt-1.5 text-xs text-destructive">{errors.password.message}</p>
               )}
