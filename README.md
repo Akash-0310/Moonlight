@@ -211,8 +211,8 @@ cd ../..
 ```
 
 The seed creates:
-- `admin@moonlight.com` / `Admin@123` — admin account
-- `test@moonlight.com` / `Test@123` — test customer
+- `admin@moonlight.com` / `Admin1234!` — admin account
+- `test@moonlight.com` / `Test1234!` — test customer
 - 50 products across Men, Women, Kids categories
 
 ### 5. Start development servers
@@ -401,7 +401,7 @@ Errors: `{ success: false, statusCode: N, message: "...", timestamp: "..." }`
 
 Access at `/admin` — requires an account with `role: admin`.
 
-The seed script creates `admin@moonlight.com` / `Admin@123` by default.
+The seed script creates `admin@moonlight.com` / `Admin1234!` by default.
 
 Features:
 - **Dashboard** — total products, orders, revenue overview

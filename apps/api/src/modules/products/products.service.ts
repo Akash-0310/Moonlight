@@ -10,11 +10,25 @@ import { ProductQueryDto } from './dto/product-query.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
+// Full include — used for product detail page (includes description, all images, all variants)
 const PRODUCT_INCLUDE = {
   images: {
     orderBy: { sortOrder: 'asc' as const },
   },
   variants: {
+    orderBy: { size: 'asc' as const },
+  },
+} satisfies Prisma.ProductInclude;
+
+// Lightweight include — used for listing pages (no description, only primary image)
+const PRODUCT_LIST_INCLUDE = {
+  images: {
+    where: { isPrimary: true },
+    take: 1,
+    orderBy: { sortOrder: 'asc' as const },
+  },
+  variants: {
+    select: { id: true, size: true, stock: true },
     orderBy: { size: 'asc' as const },
   },
 } satisfies Prisma.ProductInclude;
@@ -38,8 +52,8 @@ export class ProductsService {
 
     const where: Prisma.ProductWhereInput = {
       isActive: true,
-      ...(category && { category }),
-      ...(subCategory && { subCategory }),
+      ...(category?.length && { category: { in: category } }),
+      ...(subCategory?.length && { subCategory: { in: subCategory } }),
       ...(bestseller !== undefined && { isBestseller: bestseller }),
       ...(search && {
         OR: [
@@ -55,7 +69,7 @@ export class ProductsService {
     const [items, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
         where,
-        include: PRODUCT_INCLUDE,
+        include: PRODUCT_LIST_INCLUDE,
         orderBy,
         skip,
         take: limit,
@@ -87,7 +101,7 @@ export class ProductsService {
   async findBestsellers() {
     return this.prisma.product.findMany({
       where: { isActive: true, isBestseller: true },
-      include: PRODUCT_INCLUDE,
+      include: PRODUCT_LIST_INCLUDE,
       orderBy: { avgRating: 'desc' },
       take: 8,
     });
@@ -96,7 +110,7 @@ export class ProductsService {
   async findLatest() {
     return this.prisma.product.findMany({
       where: { isActive: true },
-      include: PRODUCT_INCLUDE,
+      include: PRODUCT_LIST_INCLUDE,
       orderBy: { createdAt: 'desc' },
       take: 8,
     });

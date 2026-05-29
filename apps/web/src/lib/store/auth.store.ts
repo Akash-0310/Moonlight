@@ -18,10 +18,15 @@ interface AuthState {
   initialize: () => Promise<void>;
 }
 
+// Optimistic: if ml_session cookie exists, assume authenticated until refresh confirms
+const hasSessionHint = typeof document !== 'undefined'
+  ? document.cookie.includes('ml_session=1')
+  : false;
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoading: true,
-  isAuthenticated: false,
+  isAuthenticated: hasSessionHint, // skip spinner if cookie says we're logged in
 
   initialize: async () => {
     set({ isLoading: true });

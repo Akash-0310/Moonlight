@@ -36,6 +36,10 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    formats: ['image/avif', 'image/webp'], // serve AVIF/WebP — 30-50% smaller than JPEG
+    minimumCacheTTL: 60 * 60 * 24 * 7,    // cache optimized images for 7 days
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       {
         protocol: 'https',

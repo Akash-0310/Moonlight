@@ -11,8 +11,10 @@ import { useCartStore } from '@/lib/store/cart.store';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000,
+      staleTime: 5 * 60 * 1000,   // 5 min — don't refetch on every navigation
+      gcTime: 10 * 60 * 1000,     // 10 min — keep cached data in memory
       retry: 1,
+      refetchOnWindowFocus: false, // don't re-fetch when tab regains focus
     },
   },
 });

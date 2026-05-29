@@ -452,17 +452,8 @@ function CollectionContent() {
                 </form>
               </div>
 
-              {/* Right: count + sort */}
+              {/* Right: sort */}
               <div className="flex items-center gap-5 shrink-0">
-                {!loading && (
-                  <p className="text-[11px] text-[#999] hidden sm:block tracking-wide">
-                    <span className="font-bold text-[#111]">
-                      {Math.min((page - 1) * PAGE_SIZE + products.length, total)}
-                    </span>
-                    {' '}of{' '}
-                    <span className="font-bold text-[#111]">{total}</span>
-                  </p>
-                )}
 
                 <div className="relative">
                   <select
@@ -541,17 +532,10 @@ function CollectionContent() {
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                {products.map((product, i) => (
+                  <ProductCard key={product.id} product={product} priority={i < 4} />
                 ))}
               </div>
-            )}
-
-            {/* Mobile product count */}
-            {!loading && products.length > 0 && (
-              <p className="sm:hidden text-[11px] text-[#999] mt-6 text-center tracking-wide">
-                {Math.min((page - 1) * PAGE_SIZE + products.length, total)} of {total} products
-              </p>
             )}
 
             {/* Pagination */}
