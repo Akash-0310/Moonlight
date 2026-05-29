@@ -30,15 +30,24 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     product.images?.find((img) => img.isPrimary) ?? product.images?.[0];
 
   const rawUrl = primaryImage?.url ?? '';
-  // Downscale Unsplash images for card thumbnails — saves 40-60% bandwidth
-  const optimizedUrl = rawUrl.includes('unsplash.com')
-    ? rawUrl.replace(/[?&]w=\d+/, '').replace(/[?&]q=\d+/, '') +
-      (rawUrl.includes('?') ? '&' : '?') + 'w=640&q=75&auto=format&fit=crop'
-    : rawUrl;
+
+  const optimizedUrl = (() => {
+    if (!rawUrl || !rawUrl.includes('unsplash.com')) return rawUrl;
+    try {
+      const u = new URL(rawUrl);
+      u.searchParams.set('w', '640');
+      u.searchParams.set('q', '75');
+      u.searchParams.set('auto', 'format');
+      u.searchParams.set('fit', 'crop');
+      return u.toString();
+    } catch {
+      return rawUrl;
+    }
+  })();
 
   const imageSrc = !imgError && rawUrl
     ? optimizedUrl
-    : 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=640&q=75&auto=format';
+    : 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=640&q=75&auto=format&fit=crop';
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }).map((_, i) => (
