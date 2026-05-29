@@ -4,12 +4,22 @@ import { Category, SubCategory } from '@prisma/client';
 
 export class ProductQueryDto {
   @IsOptional()
-  @IsEnum(Category)
-  category?: Category;
+  @Transform(({ value }) => {
+    if (typeof value === 'string') return value.split(',').map((v) => v.trim()).filter(Boolean);
+    if (Array.isArray(value)) return value;
+    return [];
+  })
+  @IsEnum(Category, { each: true })
+  category?: Category[];
 
   @IsOptional()
-  @IsEnum(SubCategory)
-  subCategory?: SubCategory;
+  @Transform(({ value }) => {
+    if (typeof value === 'string') return value.split(',').map((v) => v.trim()).filter(Boolean);
+    if (Array.isArray(value)) return value;
+    return [];
+  })
+  @IsEnum(SubCategory, { each: true })
+  subCategory?: SubCategory[];
 
   @IsOptional()
   @IsString()
