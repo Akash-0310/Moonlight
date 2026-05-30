@@ -44,4 +44,9 @@ export default () => ({
   groq: {
     apiKey: process.env.GROQ_API_KEY,
   },
+
+  sentry: {
+    dsn: process.env.SENTRY_DSN,
+    tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '1.0'),
+  },
 });
