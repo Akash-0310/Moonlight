@@ -120,6 +120,20 @@ export class CacheService {
     await this.redis.setJson(Key.product.search(queryHash), data, TTL.PRODUCT_SEARCH);
   }
 
+  // ─── Navigation cache ─────────────────────────────────────────────────────
+
+  async getNavCategories<T>(): Promise<T | null> {
+    return this.redis.getJson<T>(Key.nav.categories());
+  }
+
+  async setNavCategories<T>(data: T): Promise<void> {
+    await this.redis.setJson(Key.nav.categories(), data, TTL.NAV_CATEGORIES);
+  }
+
+  async invalidateNavCategories(): Promise<void> {
+    await this.redis.del(Key.nav.categories());
+  }
+
   // ─── Cache invalidation ───────────────────────────────────────────────────
 
   /**
