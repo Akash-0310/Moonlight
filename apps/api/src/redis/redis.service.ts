@@ -12,11 +12,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit() {
     const url = this.config.get<string>('redis.url') as string;
+    const tls = url.startsWith('rediss://') ? { rejectUnauthorized: false } : undefined;
     const opts = {
       lazyConnect: true,
       retryStrategy: (times: number) => Math.min(times * 100, 3000),
       maxRetriesPerRequest: 3,
       enableReadyCheck: true,
+      ...(tls && { tls }),
     };
 
     this.client = new Redis(url, opts);

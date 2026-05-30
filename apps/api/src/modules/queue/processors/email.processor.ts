@@ -21,7 +21,7 @@ export class EmailProcessor implements OnModuleInit, OnModuleDestroy {
       QUEUE.EMAIL,
       async (job: Job<EmailJobData>) => this.process(job),
       {
-        connection: { url: this.config.get<string>('redis.url') },
+        connection: (() => { const u = this.config.get<string>('redis.url') ?? ''; return u.startsWith('rediss://') ? { url: u, tls: { rejectUnauthorized: false } } : { url: u }; })(),
         concurrency: 5,
       },
     );
