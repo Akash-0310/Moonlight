@@ -40,4 +40,8 @@ export default () => ({
     apiKey: process.env.RESEND_API_KEY,
     from: process.env.EMAIL_FROM ?? 'noreply@moonlight.com',
   },
+
+  groq: {
+    apiKey: process.env.GROQ_API_KEY,
+  },
 });
