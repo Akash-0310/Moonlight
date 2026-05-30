@@ -52,7 +52,11 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly config: ConfigService) {}
 
   onModuleInit() {
-    const connection = { url: this.config.get<string>('redis.url') };
+    const redisUrl = this.config.get<string>('redis.url') ?? '';
+    // For Upstash (rediss://) enable TLS with rejectUnauthorized false
+    const connection = redisUrl.startsWith('rediss://')
+      ? { url: redisUrl, tls: { rejectUnauthorized: false } }
+      : { url: redisUrl };
     const defaultOpts = {
       connection,
       defaultJobOptions: {
