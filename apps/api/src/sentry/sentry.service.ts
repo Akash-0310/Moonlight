@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
-import type { SeverityLevel, Breadcrumb } from '@sentry/nestjs';
+import type { SeverityLevel, Breadcrumb, Scope } from '@sentry/nestjs';
 
 type StartSpanOptions = Parameters<typeof Sentry.startSpan>[0];
 import type { Request } from 'express';
@@ -16,7 +16,7 @@ export class SentryService {
   // ─── Exception capture ─────────────────────────────────────────────────────
 
   captureException(error: unknown, extras?: Record<string, unknown>): void {
-    Sentry.withScope((scope) => {
+    Sentry.withScope((scope: Scope) => {
       if (extras) {
         Object.entries(extras).forEach(([k, v]) => scope.setExtra(k, v));
       }
@@ -57,7 +57,7 @@ export class SentryService {
   setRequestContext(req: Request): void {
     const user = (req as any).user as SentryUser | undefined;
 
-    Sentry.withScope((scope) => {
+    Sentry.withScope((scope: Scope) => {
       scope.setTag('http.method', req.method);
       scope.setTag('http.path', req.path);
 
@@ -88,7 +88,7 @@ export class SentryService {
     jobData: unknown,
     attemptsMade?: number,
   ): void {
-    Sentry.withScope((scope) => {
+    Sentry.withScope((scope: Scope) => {
       scope.setTag('queue.name', queueName);
       scope.setTag('job.name', jobName);
       scope.setTag('job.id', jobId ?? 'unknown');

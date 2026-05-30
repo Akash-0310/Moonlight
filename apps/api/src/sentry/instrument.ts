@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nestjs';
+import type { ErrorEvent, EventHint } from '@sentry/nestjs';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 const env = process.env.NODE_ENV ?? 'development';
@@ -26,7 +27,7 @@ Sentry.init({
   profilesSampleRate: 1.0,
 
   // Don't flood Sentry with routine client mistakes — only security + server errors
-  beforeSend(event, hint) {
+  beforeSend(event: ErrorEvent, hint: EventHint) {
     const err = hint?.originalException as any;
     const status: number | undefined = err?.status ?? err?.getStatus?.();
 
@@ -46,7 +47,8 @@ Sentry.init({
   },
 
   // Drop noisy health-check transactions
-  beforeSendTransaction(event) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  beforeSendTransaction(event: any) {
     if (event.transaction?.includes('/health')) return null;
     return event;
   },

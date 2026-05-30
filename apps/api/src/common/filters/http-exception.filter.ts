@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
+import type { Scope } from '@sentry/nestjs';
 import { Request, Response } from 'express';
 
 interface ErrorResponse {
@@ -52,7 +53,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // - Skip routine 4xx (validation errors, not-found, etc.) — too much noise
     const shouldCapture = status >= 500 || status === 401 || status === 403;
     if (shouldCapture) {
-      Sentry.withScope((scope) => {
+      Sentry.withScope((scope: Scope) => {
         scope.setTag('http.status_code', String(status));
         scope.setTag('http.method', request.method);
         scope.setTag('http.path', request.path);
