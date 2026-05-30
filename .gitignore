@@ -45,3 +45,4 @@ Desktop.ini
 
 # Prisma
 prisma/migrations/*.sql.bak
+.vercel
