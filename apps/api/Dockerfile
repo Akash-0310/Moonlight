@@ -2,27 +2,36 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 
-RUN npm install -g pnpm
+RUN apk add --no-cache python3 make g++
 
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --frozen-lockfile
+# Copy only the API package files first for better layer caching
+COPY apps/api/package.json ./
+RUN npm install --ignore-scripts --legacy-peer-deps
 
-COPY . .
-RUN pnpm run db:generate
-RUN pnpm run build
+# Copy the full API source (prisma/, src/, tsconfig.json, nest-cli.json)
+COPY apps/api .
+
+RUN npx prisma generate
+RUN npm run build
 
 # ─── Stage 2: Runner ──────────────────────────────────────────────────────────
 FROM node:22-alpine AS runner
 WORKDIR /app
 
-RUN npm install -g pnpm
+ENV NODE_ENV=production
 
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --prod --frozen-lockfile
+RUN apk add --no-cache openssl
+
+COPY apps/api/package.json ./
+RUN npm install --omit=dev --ignore-scripts --legacy-peer-deps
+
+# Copy Prisma-generated client and engine binaries from builder.
+# Ensures the linux-musl-openssl-3.0.x binary is used on Alpine 3.17+.
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY prisma ./prisma
+COPY apps/api/prisma ./prisma
 
 EXPOSE 4000
 
