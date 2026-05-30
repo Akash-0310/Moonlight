@@ -4,12 +4,10 @@ WORKDIR /app
 
 RUN apk add --no-cache python3 make g++
 
-# Copy only the API package files first for better layer caching
-COPY apps/api/package.json ./
+COPY package.json ./
 RUN npm install --ignore-scripts --legacy-peer-deps
 
-# Copy the full API source (prisma/, src/, tsconfig.json, nest-cli.json)
-COPY apps/api .
+COPY . .
 
 RUN npx prisma generate
 RUN npm run build
@@ -22,7 +20,7 @@ ENV NODE_ENV=production
 
 RUN apk add --no-cache openssl
 
-COPY apps/api/package.json ./
+COPY package.json ./
 RUN npm install --omit=dev --ignore-scripts --legacy-peer-deps
 
 # Copy Prisma-generated client and engine binaries from builder.
@@ -31,8 +29,9 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 COPY --from=builder /app/dist ./dist
-COPY apps/api/prisma ./prisma
+COPY prisma ./prisma
 
 EXPOSE 4000
 
-CMD ["node", "dist/main"]
+# Run migrations then start the server
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
