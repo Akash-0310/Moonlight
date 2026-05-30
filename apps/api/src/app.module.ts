@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import configuration from './config/configuration';
+import { SentryAppModule } from './sentry/sentry.module';
+import { SentryContextInterceptor } from './sentry/sentry.interceptor';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -15,6 +17,7 @@ import { QueueModule } from './modules/queue/queue.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { RealtimeModule } from './modules/realtime/realtime.module';
 import { AiCacheModule } from './modules/ai-cache/ai-cache.module';
+import { AiAssistantModule } from './modules/ai-assistant/ai-assistant.module';
 import { CacheModule } from './cache/cache.module';
 import { RateLimitModule } from './rate-limit/rate-limit.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -41,6 +44,7 @@ import { RolesGuard } from './common/guards/roles.guard';
       },
     ]),
 
+    SentryAppModule,
     PrismaModule,
     RedisModule,
     CacheModule,
@@ -55,10 +59,14 @@ import { RolesGuard } from './common/guards/roles.guard';
     AnalyticsModule,
     RealtimeModule,
     AiCacheModule,
+    AiAssistantModule,
   ],
   providers: [
     // Global exception filter — all unhandled errors go here
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
+
+    // Attaches authenticated user + breadcrumbs to every request's Sentry scope
+    { provide: APP_INTERCEPTOR, useClass: SentryContextInterceptor },
 
     // Global response envelope: { success: true, data: ..., timestamp: ... }
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },

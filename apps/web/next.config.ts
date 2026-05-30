@@ -9,6 +9,18 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    // Proxies /api/* → backend on port 4000.
+    // Used when sharing via ngrok so the friend's browser
+    // hits the Next.js server (port 3000) which forwards internally to 4000.
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:4000/api/:path*',
+      },
+    ];
+  },
+
   async headers() {
     return [
       {
