@@ -144,6 +144,29 @@ export class ProductsService {
     return products;
   }
 
+  async getCategories() {
+    type NavData = Record<string, { total: number; subCategories: Record<string, number> }>;
+
+    const cached = await this.cache.getNavCategories<NavData>();
+    if (cached) return cached;
+
+    const counts = await this.prisma.product.groupBy({
+      by: ['category', 'subCategory'],
+      where: { isActive: true },
+      _count: { _all: true },
+    });
+
+    const nav: NavData = {};
+    for (const row of counts) {
+      if (!nav[row.category]) nav[row.category] = { total: 0, subCategories: {} };
+      nav[row.category].total += row._count._all;
+      nav[row.category].subCategories[row.subCategory] = row._count._all;
+    }
+
+    await this.cache.setNavCategories(nav);
+    return nav;
+  }
+
   // ─── Admin Mutations ────────────────────────────────────────────────────────
 
   async create(dto: CreateProductDto) {
@@ -185,8 +208,8 @@ export class ProductsService {
       }
       throw new InternalServerErrorException('Failed to create product');
     } finally {
-      // Invalidate all product lists after creation
       void this.cache.invalidateProductLists();
+      void this.cache.invalidateNavCategories();
     }
   }
 
@@ -236,9 +259,9 @@ export class ProductsService {
       include: PRODUCT_INCLUDE,
     });
 
-    // Invalidate specific product + all lists
     await this.cache.invalidateProduct(updated.slug);
     void this.cache.invalidateProductLists();
+    void this.cache.invalidateNavCategories();
     return updated;
   }
 
@@ -250,9 +273,9 @@ export class ProductsService {
       data: { isActive: false },
     });
 
-    // Invalidate cache
     await this.cache.invalidateProduct((product as { slug: string }).slug);
     void this.cache.invalidateProductLists();
+    void this.cache.invalidateNavCategories();
 
     return { message: 'Product deactivated successfully' };
   }

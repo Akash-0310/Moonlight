@@ -19,9 +19,13 @@ export const TTL = {
   REFRESH_TOKEN:          60 * 60 * 24 * 7, // 7 days
   DEVICE_SESSION:         60 * 60 * 24 * 30, // 30 days
 
-  // Cart
+  // Cart & Wishlist
   GUEST_CART:    60 * 60 * 24 * 7,     // 7 days
   USER_CART:     60 * 60 * 24 * 30,    // 30 days
+  WISHLIST_USER: 60 * 60 * 24 * 30,    // 30 days
+
+  // Navigation
+  NAV_CATEGORIES: 60 * 60,             // 1 hr — category/subcategory tree
 
   // Inventory
   STOCK_LOCK:    30,                    // 30 sec — distributed lock TTL
@@ -69,6 +73,16 @@ export const Key = {
   cart: {
     guest: (sessionId: string)   => `${P}:cart:guest:${sessionId}`,
     user:  (userId: string)      => `${P}:cart:user:${userId}`,
+  },
+
+  // Wishlist
+  wishlist: {
+    user: (userId: string)       => `${P}:wishlist:user:${userId}`,
+  },
+
+  // Navigation
+  nav: {
+    categories: ()               => `${P}:nav:categories`,
   },
 
   // Inventory
@@ -123,13 +137,13 @@ export const Key = {
 // ─── BullMQ queue names ───────────────────────────────────────────────────────
 
 export const QUEUE = {
-  EMAIL:          'ml:queue:email',
-  ORDER:          'ml:queue:order',
-  INVOICE:        'ml:queue:invoice',
-  ANALYTICS:      'ml:queue:analytics',
-  CART_REMINDER:  'ml:queue:cart-reminder',
-  WEBHOOK:        'ml:queue:webhook',
-  NOTIFICATION:   'ml:queue:notification',
+  EMAIL:          'ml-queue-email',
+  ORDER:          'ml-queue-order',
+  INVOICE:        'ml-queue-invoice',
+  ANALYTICS:      'ml-queue-analytics',
+  CART_REMINDER:  'ml-queue-cart-reminder',
+  WEBHOOK:        'ml-queue-webhook',
+  NOTIFICATION:   'ml-queue-notification',
 } as const;
 
 // ─── Rate limit configs ───────────────────────────────────────────────────────

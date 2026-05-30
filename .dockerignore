@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+**/dist
+**/.next
+**/build
+
+# Git
+.git
+.gitignore
+
+# Logs
+**/*.log
+**/logs
+
+# Environment files
+**/.env
+**/.env.*
+!**/.env.example
+
+# Docker
+.dockerignore
+**/Dockerfile*
+docker-compose*.yml
+
+# IDE / OS
+.vscode
+.idea
+**/.DS_Store
+**/Thumbs.db
+
+# Test artifacts
+**/coverage
+**/__tests__
+**/*.test.ts
+**/*.spec.ts

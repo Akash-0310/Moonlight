@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RedisService } from '../../redis/redis.service';
+import { Key, TTL } from '../../redis/redis.constants';
 
 const PRODUCT_INCLUDE = {
   select: {
@@ -20,19 +22,29 @@ const PRODUCT_INCLUDE = {
 
 @Injectable()
 export class WishlistService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
+  ) {}
 
   async getWishlist(userId: string) {
+    const cacheKey = Key.wishlist.user(userId);
+    const cached = await this.redis.getJson<any>(cacheKey);
+    if (cached) return cached;
+
     const items = await this.prisma.wishlist.findMany({
       where: { userId },
       include: { product: PRODUCT_INCLUDE },
       orderBy: { createdAt: 'desc' },
     });
-    return items.map((i) => ({
+    const formatted = items.map((i) => ({
       productId: i.productId,
       addedAt: i.createdAt,
       product: i.product,
     }));
+
+    await this.redis.setJson(cacheKey, formatted, TTL.WISHLIST_USER);
+    return formatted;
   }
 
   async addItem(userId: string, productId: string) {
@@ -41,11 +53,13 @@ export class WishlistService {
       create: { userId, productId },
       update: {},
     });
+    await this.redis.del(Key.wishlist.user(userId));
     return this.getWishlist(userId);
   }
 
   async removeItem(userId: string, productId: string) {
     await this.prisma.wishlist.deleteMany({ where: { userId, productId } });
+    await this.redis.del(Key.wishlist.user(userId));
     return this.getWishlist(userId);
   }
 

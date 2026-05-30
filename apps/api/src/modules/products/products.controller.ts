@@ -43,6 +43,12 @@ export class ProductsController {
   }
 
   @Public()
+  @Get('categories')
+  getCategories() {
+    return this.productsService.getCategories();
+  }
+
+  @Public()
   @Get(':slug')
   findOne(@Param('slug') slug: string) {
     return this.productsService.findBySlug(slug);
