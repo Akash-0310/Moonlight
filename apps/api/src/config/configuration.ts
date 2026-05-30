@@ -40,4 +40,9 @@ export default () => ({
     apiKey: process.env.RESEND_API_KEY,
     from: process.env.EMAIL_FROM ?? 'noreply@moonlight.com',
   },
+
+  sentry: {
+    dsn: process.env.SENTRY_DSN,
+    tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '1.0'),
+  },
 });
