@@ -10,9 +10,12 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly config: ConfigService) {}
 
   onModuleInit() {
-    this.client = new Redis(this.config.get<string>('redis.url') as string, {
+    const url = this.config.get<string>('redis.url') as string;
+    const tls = url.startsWith('rediss://') ? { rejectUnauthorized: false } : undefined;
+    this.client = new Redis(url, {
       lazyConnect: true,
       retryStrategy: (times) => Math.min(times * 100, 3000),
+      ...(tls && { tls }),
     });
 
     this.client.on('connect', () => this.logger.log('Redis connected'));

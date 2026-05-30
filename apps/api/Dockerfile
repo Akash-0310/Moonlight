@@ -2,28 +2,33 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 
-RUN npm install -g pnpm
+RUN apk add --no-cache python3 make g++
 
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --frozen-lockfile
+COPY package.json ./
+RUN npm install --ignore-scripts --legacy-peer-deps
 
 COPY . .
-RUN pnpm run db:generate
-RUN pnpm run build
+
+RUN npx prisma generate
+RUN npm run build
 
 # ─── Stage 2: Runner ──────────────────────────────────────────────────────────
 FROM node:22-alpine AS runner
 WORKDIR /app
 
-RUN npm install -g pnpm
+ENV NODE_ENV=production
 
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --prod --frozen-lockfile
+RUN apk add --no-cache openssl
+
+COPY package.json ./
+RUN npm install --omit=dev --ignore-scripts --legacy-peer-deps
+
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY prisma ./prisma
 
 EXPOSE 4000
 
-CMD ["node", "dist/main"]
+CMD ["sh", "-c", "npx prisma@5 migrate deploy && node --max-old-space-size=256 dist/main"]
