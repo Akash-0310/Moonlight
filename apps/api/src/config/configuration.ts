@@ -41,6 +41,10 @@ export default () => ({
     from: process.env.EMAIL_FROM ?? 'noreply@moonlight.com',
   },
 
+  groq: {
+    apiKey: process.env.GROQ_API_KEY,
+  },
+
   sentry: {
     dsn: process.env.SENTRY_DSN,
     tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '1.0'),

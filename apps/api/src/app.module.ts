@@ -17,6 +17,7 @@ import { QueueModule } from './modules/queue/queue.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { RealtimeModule } from './modules/realtime/realtime.module';
 import { AiCacheModule } from './modules/ai-cache/ai-cache.module';
+import { AiAssistantModule } from './modules/ai-assistant/ai-assistant.module';
 import { CacheModule } from './cache/cache.module';
 import { RateLimitModule } from './rate-limit/rate-limit.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -58,6 +59,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     AnalyticsModule,
     RealtimeModule,
     AiCacheModule,
+    AiAssistantModule,
   ],
   providers: [
     // Global exception filter — all unhandled errors go here
