@@ -71,7 +71,7 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
     };
 
     // Initialize all queues
-    for (const queueName of Object.values(QUEUE)) {
+    for (const queueName of Object.values(QUEUE) as string[]) {
       const q = new Queue(queueName, defaultOpts);
       this.queues.set(queueName, q);
       this.logger.log(`Queue initialized: ${queueName}`);

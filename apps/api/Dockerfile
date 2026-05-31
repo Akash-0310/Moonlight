@@ -4,8 +4,8 @@ WORKDIR /app
 
 RUN apk add --no-cache python3 make g++
 
-COPY package.json ./
-RUN npm install --ignore-scripts --legacy-peer-deps
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps
 
 COPY . .
 
