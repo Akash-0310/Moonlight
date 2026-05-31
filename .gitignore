@@ -43,6 +43,9 @@ Desktop.ini
 *.swp
 *.swo
 
+# Vercel
+.vercel/
+
 # Prisma
 prisma/migrations/*.sql.bak
 .vercel
