@@ -25,10 +25,12 @@ RUN npm install --omit=dev --ignore-scripts --legacy-peer-deps
 
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
 COPY --from=builder /app/dist ./dist
 COPY prisma ./prisma
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "npx prisma@5 migrate deploy && node --max-old-space-size=256 dist/main"]
+CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && node --max-old-space-size=256 dist/main"]
