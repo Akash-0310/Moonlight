@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/nestjs';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
+  private keepAliveInterval?: ReturnType<typeof setInterval>;
 
   constructor() {
     super({
@@ -15,8 +16,24 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async onModuleInit() {
-    await this.$connect();
-    this.logger.log('Database connected');
+    // Retry connect — Neon's compute may be suspended on cold start and need
+    // a few seconds to wake up. Don't block the full NestJS bootstrap; retry
+    // in the background so the app can bind its port and serve other routes.
+    this.connectWithRetry();
+
+    // Neon free tier suspends after 5 min of inactivity, dropping the TCP connection.
+    // A keepalive ping every 4 min prevents the "Error { kind: Closed }" on the next query.
+    if (process.env.NODE_ENV === 'production') {
+      this.keepAliveInterval = setInterval(async () => {
+        try {
+          await this.$queryRaw`SELECT 1`;
+        } catch {
+          this.logger.warn('DB keepalive failed, reconnecting…');
+          await this.$disconnect().catch(() => null);
+          await this.$connect().catch((e) => this.logger.error('DB reconnect failed', e));
+        }
+      }, 4 * 60 * 1000); // every 4 minutes
+    }
 
     // In dev mode, Prisma emits query events — use them to detect slow queries
     if (process.env.NODE_ENV === 'development') {
@@ -37,7 +54,22 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     }
   }
 
+  private async connectWithRetry(attempts = 5, delayMs = 3000): Promise<void> {
+    for (let i = 1; i <= attempts; i++) {
+      try {
+        await this.$connect();
+        this.logger.log('Database connected');
+        return;
+      } catch (err) {
+        this.logger.warn(`DB connect attempt ${i}/${attempts} failed: ${(err as Error).message}`);
+        if (i < attempts) await new Promise((r) => setTimeout(r, delayMs));
+      }
+    }
+    this.logger.error('Database failed to connect after all retries — queries will fail until the connection is restored');
+  }
+
   async onModuleDestroy() {
+    if (this.keepAliveInterval) clearInterval(this.keepAliveInterval);
     await this.$disconnect();
   }
 }
