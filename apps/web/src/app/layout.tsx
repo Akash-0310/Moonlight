@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     template: '%s | MoonLight',
     default: 'MoonLight — Premium Fashion',
   },
-  description: 'Discover premium fashion for Men, Women and Kids at MoonLight.',
+  description: 'Discover premium fashion for men, women and kids at MoonLight.',
   icons: {
     icon: '/icon',
     shortcut: '/icon',
