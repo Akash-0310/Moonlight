@@ -21,7 +21,7 @@ ENV NODE_ENV=production
 RUN apk add --no-cache openssl
 
 COPY package.json ./
-RUN npm install --omit=dev --ignore-scripts --legacy-peer-deps
+RUN npm install --omit=dev --legacy-peer-deps
 
 # Copy Prisma-generated client and engine binaries from builder.
 # Ensures the linux-musl-openssl-3.0.x binary is used on Alpine 3.17+.
