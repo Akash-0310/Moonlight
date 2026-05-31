@@ -4,8 +4,8 @@ WORKDIR /app
 
 RUN apk add --no-cache python3 make g++
 
-COPY package.json ./
-RUN npm install --ignore-scripts --legacy-peer-deps
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps
 
 COPY . .
 
@@ -36,4 +36,4 @@ COPY prisma ./prisma
 EXPOSE 4000
 
 # Run migrations then start the server
-CMD ["sh", "-c", "npx prisma@5 migrate deploy && node --max-old-space-size=256 dist/main"]
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && node --max-old-space-size=256 dist/main"]

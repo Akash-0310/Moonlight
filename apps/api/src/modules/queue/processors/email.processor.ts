@@ -26,11 +26,11 @@ export class EmailProcessor implements OnModuleInit, OnModuleDestroy {
       },
     );
 
-    this.worker.on('completed', (job) =>
+    this.worker.on('completed', (job: Job<EmailJobData>) =>
       this.logger.log(`Email sent: ${job.data.to} — ${job.data.subject}`),
     );
 
-    this.worker.on('failed', (job, err) => {
+    this.worker.on('failed', (job: Job<EmailJobData> | undefined, err: Error) => {
       this.logger.error(`Email failed: ${job?.data?.to} — ${err.message}`);
       this.sentry.captureJobException(err, job?.name ?? 'send-email', QUEUE.EMAIL, job?.id, job?.data, job?.attemptsMade);
     });

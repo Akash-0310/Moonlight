@@ -1,3 +1,5 @@
+// Sentry MUST be initialized before any other imports so it can patch modules
+import './sentry/instrument';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';

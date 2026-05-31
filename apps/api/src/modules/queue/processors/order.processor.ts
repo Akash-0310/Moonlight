@@ -28,11 +28,11 @@ export class OrderProcessor implements OnModuleInit, OnModuleDestroy {
       },
     );
 
-    this.worker.on('completed', (job) =>
+    this.worker.on('completed', (job: Job<OrderJobData>) =>
       this.logger.log(`Order processed: ${job.data.orderId} — ${job.data.action}`),
     );
 
-    this.worker.on('failed', (job, err) => {
+    this.worker.on('failed', (job: Job<OrderJobData> | undefined, err: Error) => {
       this.logger.error(`Order processing failed: ${job?.data?.orderId} — ${err.message}`);
       this.sentry.captureJobException(err, job?.name ?? 'process-order', QUEUE.ORDER, job?.id, job?.data, job?.attemptsMade);
     });

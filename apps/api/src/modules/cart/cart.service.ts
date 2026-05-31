@@ -4,6 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RedisService } from '../../redis/redis.service';
+import { Key, TTL } from '../../redis/redis.constants';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
 
@@ -36,9 +38,16 @@ const CART_ITEM_INCLUDE = {
 
 @Injectable()
 export class CartService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
+  ) {}
 
   async getCart(userId: string) {
+    const cacheKey = Key.cart.user(userId);
+    const cached = await this.redis.getJson<any>(cacheKey);
+    if (cached) return cached;
+
     const cart = await this.prisma.cart.upsert({
       where: { userId },
       create: { userId },
@@ -51,7 +60,9 @@ export class CartService {
       },
     });
 
-    return this.formatCart(cart);
+    const formatted = this.formatCart(cart);
+    await this.redis.setJson(cacheKey, formatted, TTL.USER_CART);
+    return formatted;
   }
 
   async addItem(userId: string, dto: AddToCartDto) {
@@ -111,6 +122,7 @@ export class CartService {
       });
     }
 
+    await this.redis.del(Key.cart.user(userId));
     return this.getCart(userId);
   }
 
@@ -161,6 +173,7 @@ export class CartService {
       });
     }
 
+    await this.redis.del(Key.cart.user(userId));
     return this.getCart(userId);
   }
 
@@ -187,6 +200,7 @@ export class CartService {
 
     await this.prisma.cartItem.delete({ where: { id: cartItemId } });
 
+    await this.redis.del(Key.cart.user(userId));
     return this.getCart(userId);
   }
 
@@ -202,6 +216,7 @@ export class CartService {
       });
     }
 
+    await this.redis.del(Key.cart.user(userId));
     return this.getCart(userId);
   }
 
