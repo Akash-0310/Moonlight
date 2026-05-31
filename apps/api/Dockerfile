@@ -29,7 +29,6 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 # Copy prisma CLI from builder so migrate deploy runs without downloading it
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
 COPY --from=builder /app/dist ./dist
 COPY prisma ./prisma
@@ -37,4 +36,4 @@ COPY prisma ./prisma
 EXPOSE 4000
 
 # Run migrations then start the server
-CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && node --max-old-space-size=256 dist/main"]
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && node --max-old-space-size=256 dist/main"]
