@@ -53,10 +53,13 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit() {
     const redisUrl = this.config.get<string>('redis.url') ?? '';
-    // For Upstash (rediss://) enable TLS with rejectUnauthorized false
-    const connection = redisUrl.startsWith('rediss://')
-      ? { url: redisUrl, tls: { rejectUnauthorized: false } }
-      : { url: redisUrl };
+    // maxRetriesPerRequest:null and enableReadyCheck:false are required by BullMQ
+    const connection = {
+      url: redisUrl,
+      maxRetriesPerRequest: null,
+      enableReadyCheck: false,
+      ...(redisUrl.startsWith('rediss://') && { tls: { rejectUnauthorized: false } }),
+    };
     const defaultOpts = {
       connection,
       defaultJobOptions: {
