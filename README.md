@@ -48,7 +48,6 @@ The project is structured as a **pnpm monorepo** with two apps:
 | State | Zustand 5 |
 | Data Fetching | Axios + TanStack React Query |
 | Forms | React Hook Form + Zod |
-| Icons | Lucide React |
 | Auth | JWT (in-memory access token + HttpOnly refresh cookie) |
 
 ### Backend (`apps/api`)
