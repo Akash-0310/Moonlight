@@ -6,8 +6,6 @@ Dev : https://moonlight-web-git-dev-useforwork365-1842s-projects.vercel.app/
 
 A full-stack, production-ready e-commerce platform for premium fashion, built as a modern monorepo with Next.js 15 and NestJS.
 
----
-
 ## Table of Contents
 
 - [Overview](#overview)
@@ -50,7 +48,6 @@ The project is structured as a **pnpm monorepo** with two apps:
 | State | Zustand 5 |
 | Data Fetching | Axios + TanStack React Query |
 | Forms | React Hook Form + Zod |
-| Icons | Lucide React |
 | Auth | JWT (in-memory access token + HttpOnly refresh cookie) |
 
 ### Backend (`apps/api`)
